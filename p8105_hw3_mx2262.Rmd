@@ -3,7 +3,7 @@ title: "P8105 - Homework 3"
 author: "Mingkuan Xu"
 output: github_document
 ---
-```{r library}
+```{r library,message=FALSE,warning=FALSE}
 library(tidyverse)
 library(p8105.datasets)
 ```
@@ -44,7 +44,8 @@ instacart_by_aisle %>%
   geom_bar(stat="identity") +
   xlab("Aisle")+
   ylab("Number of Items") +
-  coord_flip()
+  coord_flip()+
+  theme_classic()
 ```
 
 #### Part 4 - Three most popular items
@@ -168,7 +169,7 @@ We use the above code o find out which states were observed at 7 or more locatio
 
 #### Part 3 - The “spaghetti” plot 
 
-```{r p2_part3}
+```{r p2_part3,warning=FALSE,message=FALSE}
 data_brfss_excellent = 
   data_brfss %>%
   filter(response=="Excellent") %>%
@@ -279,7 +280,7 @@ ggplot(data_accel_long, aes(x=activity,y=value,group=day_id)) +
 ```
 
 
-```{r p3_part3}
+```{r p3_part3_2}
 data_accel_long_60 = data_accel %>% 
   pivot_longer(activity_1:activity_1440,names_to="activity",names_prefix = "activity_") %>%
   mutate(hour = as.numeric(activity) %/% 60) %>%
@@ -300,4 +301,4 @@ ggplot(data_accel_long_60, aes(x=hour,y=average,group=day_id)) +
   theme_classic()
 ```
 
-For these two plots, we observe that the values tend to stay in a lower level in the morning, and begin to increase at around 5 am (possibly after getting up) and reach a high level at noon. The values seem to decrease in the afternoon and bounce back in the evening. They drop back to a lower level usually at the end of the day. No obvious patterns related to days were observed.   
+From these two plots, we observe that the values tend to stay in a lower level in the morning, and begin to increase at around 5 am (possibly after getting up) and reach a high level at noon. The values seem to decrease in the afternoon and bounce back in the evening. They drop back to a lower level usually at the end of the day. No obvious patterns related to days were observed.   
