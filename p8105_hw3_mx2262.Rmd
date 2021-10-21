@@ -3,3 +3,136 @@ title: "P8105 - Homework 3"
 author: "Mingkuan Xu"
 output: github_document
 ---
+```{r library}
+library(tidyverse)
+library(p8105.datasets)
+```
+
+## Problem 1
+
+#### Part 1 - Data import & description
+```{r p1_import}
+data("instacart")
+head(instacart)
+```
+
+This is an anonymized dataset recording online grocery orders from Instacart users. Each row in the dataset is a product from an order; there is a single order per user in this dataset. There are `r nrow(instacart)` total rows in this dataset with `r ncol(instacart)` columns, recording `r length(unique(pull(instacart,order_id)))` orders in total. The recorded information include: `r tolower(names(janitor::clean_names(instacart,"sentence")))`. There are some interesting observations of this dataset. For example, there are `r length(unique(pull(instacart,department)))` departments in total, including `r unique(pull(instacart,department))`.
+
+#### Part 2 - Analysis of aisles
+
+```{r p1_part2}
+instacart %>% pull(aisle) %>% unique() %>% length() # Find number of aisles.
+
+instacart_by_aisle = 
+  instacart %>% 
+  count(aisle) %>% 
+  arrange(desc(n)) 
+
+head(instacart_by_aisle,1)# Find most popular aisle
+```
+
+Using the codes above, we found that there are 134 aisles in total, with aisle of the fresh vegetables being the most popular one from which 150609 items were ordered.
+
+#### Part 3 - Plot of items from aisles.
+
+Now we plot the number of items ordered in each aisle, limiting this to aisles with more than 10000 items ordered using the following code.
+
+```{r p1_part3}
+instacart_by_aisle %>% 
+  filter(n>10000)  %>%
+  ggplot(.,aes(x=reorder(aisle,n),y=n)) + 
+  geom_bar(stat="identity") +
+  xlab("Aisle")+
+  ylab("Number of Items") +
+  coord_flip()
+```
+
+#### Part 4 - Three most popular items
+
+```{r p1_part4}
+baking_ingredients = 
+  instacart %>%
+  filter(aisle=="baking ingredients") %>%
+  count(product_name) %>%
+  arrange(desc(n)) %>%
+  mutate(Aisle="Baking Ingredients") %>%
+  rename(Product=product_name,Count=n)%>%
+  relocate(Aisle) %>%
+  head(3)
+  
+
+dog_food_care = 
+  instacart %>%
+  filter(aisle=="dog food care") %>%
+  count(product_name) %>%
+  arrange(desc(n)) %>%
+  mutate(Aisle="Dog Food Care") %>%
+  rename(Product=product_name,Count=n)%>%
+  relocate(Aisle) %>%
+  head(3)
+
+packaged_vegetables_fruits = 
+  instacart %>%
+  filter(aisle=="packaged vegetables fruits") %>%
+  count(product_name) %>%
+  arrange(desc(n)) %>%
+  mutate(Aisle="Packaged Vegetables Fruits") %>%
+  rename(Product=product_name,Count=n)%>%
+  relocate(Aisle) %>%
+  head(3)
+
+popular_table = 
+  bind_rows(baking_ingredients,
+                          dog_food_care,
+                          packaged_vegetables_fruits) %>%
+  arrange(desc(Count))
+
+popular_table %>% knitr::kable(digits = 1)
+```
+
+#### Part 5 - The mean hour of the day
+
+```{r p1_part5}
+
+pink_lady_apples = 
+  instacart %>%
+  filter(product_name == "Pink Lady Apples") %>%
+  select(order_dow,order_hour_of_day) %>%
+  group_by(order_dow) %>%
+  summarize(
+    median_hour_of_day = mean(order_hour_of_day)
+  ) %>%
+  rename("Pink Lady Apples"=median_hour_of_day)
+
+
+coffee_ice_cream = 
+  instacart %>%
+  filter(product_name == "Coffee Ice Cream") %>%
+  select(order_dow,order_hour_of_day) %>%
+  group_by(order_dow) %>%
+  summarize(
+    median_hour_of_day = mean(order_hour_of_day)
+  ) %>%
+  rename("Coffee Ice Cream"=median_hour_of_day)
+
+median_hour_table = 
+  left_join(pink_lady_apples,coffee_ice_cream,by="order_dow") %>%
+  select(-order_dow)
+# mutate("Day of Week" = c("Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"))
+
+median_hour_table %>% knitr::kable(digits = 1)
+```
+
+## Problem 2
+```{r p2_import}
+data("brfss_smart2010")
+
+data_brfss = brfss_smart2010 %>%
+  janitor::clean_names() %>% 
+  filter(topic=="Overall Health") %>%
+  filter(response %in% c("Excellent","Very good","Good","Fair","Poor"))
+
+nrow(data_brfss)
+# unique(pull(data_brfss,response))
+```
+
