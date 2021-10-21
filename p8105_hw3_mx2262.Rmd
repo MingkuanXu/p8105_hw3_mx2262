@@ -213,5 +213,91 @@ data_ny_2006_2010 %>%
 
   
 ```
+## Problem 3
+
+#### Part 1 - Data preprocessing
+
+```{r p3_part1}
+
+# Import data from the csv file. 
+data_accel = 
+  read_csv("./data/accel_data.csv") %>%
+  janitor::clean_names() %>%
+  mutate(is_weekday=
+           ifelse(day %in% c("Saturday","Sunday"),
+                  FALSE,
+                  TRUE)) %>% # A column to record if it is weekday.
+  relocate(week,day_id,day,is_weekday)
+
+head(data_accel)
+```
+
+This dataset contains the five weeks of accelerometer data collected on a 63 year-old male with BMI 25.
+It records `r nrow(data_accel)` days in total; for each day, it contains the values of `r ncol(select(data_accel,!week:is_weekday))` activities. Aside from the accelerometer data, it also contains `r names(select(data_accel,week:is_weekday))` for each row.
+
+#### Part 2 - Aggregate accross minutes
+
+```{r p3_part2}
+
+# Import data from the csv file. 
+data_accel_wholeday = 
+  data_accel %>%
+  rowwise() %>%
+  mutate(activity_total = sum(across(activity_1:activity_1440))) %>%
+  ungroup() %>%
+  select(day_id,is_weekday,activity_total) 
+
+data_accel_wholeday %>% knitr::kable(digits = 1)
+
+ggplot(data_accel_wholeday,aes(x=day_id,y=activity_total)) + 
+  geom_line()+
+  geom_point(aes(color=is_weekday))+
+  theme_bw()+
+  xlab("Days")+
+  ylab("Activity Total")+
+  labs(color="is_weekday")
+
+  
+```
+From the data of aggregated total activity, we do not find a trend of overall decreasing or increasing, but we do observe the total values are very unstable from the beginning to the end, with huge variance between days. Additionally, when taking into account the weekday/weekend variable, it looks like after day 20, on each Saturday there will be a huge decrease of the value. 
+
+#### Part 3 - The 24-hour activity time courses for each day
+```{r p3_part3}
+data_accel_long = data_accel %>% 
+  pivot_longer(activity_1:activity_1440,names_to="activity",names_prefix = "activity_") %>%
+  mutate(activity = as.numeric(activity))
+
+ggplot(data_accel_long, aes(x=activity,y=value,group=day_id)) + 
+  geom_line(aes(color=day))+
+  ylab("Average Value")+
+  xlab("Minutes")+
+  labs(
+    title = "The 24-Hour Activity Time Courses for Each Day (in Minute)",
+    color = "Days"
+  )+
+  theme_classic()
+```
 
 
+```{r p3_part3}
+data_accel_long_60 = data_accel %>% 
+  pivot_longer(activity_1:activity_1440,names_to="activity",names_prefix = "activity_") %>%
+  mutate(hour = as.numeric(activity) %/% 60) %>%
+  group_by(day_id,day,hour) %>%
+  summarize(
+    average = mean(value)
+  )
+
+
+ggplot(data_accel_long_60, aes(x=hour,y=average,group=day_id)) + 
+  geom_line(aes(color=day))+
+  ylab("Average Value")+
+  xlab("Hours")+
+  labs(
+    title = "The 24-Hour Activity Time Courses for Each Day (in Hour)",
+    color = "Days"
+  )+
+  theme_classic()
+```
+
+For these two plots, we observe that the values tend to stay in a lower level in the morning, and begin to increase at around 5 am (possibly after getting up) and reach a high level at noon. The values seem to decrease in the afternoon and bounce back in the evening. They drop back to a lower level usually at the end of the day. No obvious patterns related to days were observed.   
