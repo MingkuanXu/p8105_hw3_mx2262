@@ -260,6 +260,7 @@ ggplot(data_accel_wholeday,aes(x=day_id,y=activity_total)) +
 
   
 ```
+
 From the data of aggregated total activity, we do not find a trend of overall decreasing or increasing, but we do observe the total values are very unstable from the beginning to the end, with huge variance between days. Additionally, when taking into account the weekday/weekend variable, it looks like after day 20, on each Saturday there will be a huge decrease of the value. 
 
 #### Part 3 - The 24-hour activity time courses for each day
